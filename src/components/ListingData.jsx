@@ -41,7 +41,7 @@ export const CategoryData = [
   },
   {
     cateory: "Home",
-    imageUrl: "https://shorturl.at/KFxYY",
+    imageUrl: "https://shorturl.at/8JkOk",
   },
   {
     cateory: "Accessories",
@@ -53,7 +53,7 @@ export const CategoryData = [
   },
   {
     cateory: "Cosmetics",
-    imageUrl: "https://shorturl.at/Lm3EJ",
+    imageUrl: "https://shorturl.at/bqcwd",
   },
 ];
 
