@@ -7,12 +7,17 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import App from "./App.jsx";
+import Products from "./pages/Products.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
   },
+  {
+    path: "/products",
+    element: <Products />
+  }
 ]);
 
 createRoot(document.getElementById("root")).render(
