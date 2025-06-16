@@ -72,6 +72,9 @@ export default function Products() {
     }
   };
 
+  const categories = ["Men", "Women", "Kids", "Electronics", "Home", "Accessories", "Footware", "Cosmetics"];
+
+
   console.log(data);
   return (
     <>
@@ -107,54 +110,22 @@ export default function Products() {
                   </div>
                   <hr />
 
-                  <h5>Category</h5>
-                  <label htmlFor="Men">
-                    <input type="checkbox" value="Men" id="Men" /> Men
-                  </label>
-                  <br />
-                  <label htmlFor="Women">
-                    <input type="checkbox" value="Women" id="Women" /> Women
-                  </label>
-                  <br />
-                  <label htmlFor="Kids">
-                    <input type="checkbox" value="Kids" /> Kids
-                  </label>
-                  <br />
-                  <label htmlFor="Electronics">
-                    <input
-                      type="checkbox"
-                      value="Electronics"
-                      id="Electronics"
-                    />{" "}
-                    Electronics
-                  </label>
-                  <br />
-                  <label htmlFor="Home">
-                    <input type="checkbox" value="Home" id="Home" /> Home
-                  </label>
-                  <br />
-                  <label htmlFor="Accessories">
-                    <input
-                      type="checkbox"
-                      value="Accessories"
-                      id="Accessories"
-                    />{" "}
-                    Accessories
-                  </label>
-                  <br />
-                  <label htmlFor="Footware">
-                    <input type="checkbox" value="Footware" id="Footware" />{" "}
-                    Footware
-                  </label>
-                  <br />
-                  <label htmlFor="Cosmetics">
-                    <input type="checkbox" value="Cosmetics" id="Cosmetics" />{" "}
-                    Cosmetics
-                  </label>
-                  <br />
-                  <hr />
+                  <div>
+                    <h5>Category</h5>
+                    {categories.map((category) => (
+                      <div key={category}>
+                        <label htmlFor={`${category}Checkbox`}>
+                          <input 
+                          type="checkbox"
+                          id={`${category}Checkbox`}
+                          value={category}
+                          />{" "} {category}
+                        </label>
+                      </div>
+                    ))}
+                    <hr />
+                  </div>
 
-                  
                   <h5>Price Range</h5>
                   <label for="customRange3" class="form-label"></label>
                   <input
