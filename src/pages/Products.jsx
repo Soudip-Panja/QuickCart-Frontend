@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
+//Star logic weather the start is full, half anf empty
 function StarRating({ productRating }) {
   const renderStar = (rating) => {
     const stars = [];
@@ -22,6 +23,7 @@ function StarRating({ productRating }) {
   return renderStar(productRating);
 }
 
+//Card Star dynaic layout logic
 function StarFilterLayout() {
   const ratingOptions = [];
   for (let rating = 4; rating >= 1; rating--) {
@@ -54,14 +56,30 @@ export default function Products() {
   const [wishListItem, setWishlistItem] = useState([]);
   const [priceRange, setPriceRange] = useState(1000);
 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
+  //Filter checkbox logic part
+  const handleCategoryChange = (event) => {
+    const { value, checked } = event.target;
+
+    if (checked) {
+      setSelectedCategories([...selectedCategories, value]);
+    } else {
+      setSelectedCategories(selectedCategories.filter((cat) => cat !== value));
+    }
+  };
+
+  //Filter Layout pricerange part
   const handlePriceRangeChange = (event) => {
     setPriceRange(event.target.value);
   };
 
+  //Card Layout add to cart button color changer
   const handleCartButton = (productId) => {
     setCartItems((prevCart) => [...prevCart, productId]);
   };
 
+  //Card Layout wishlist button part
   const handleWishlistButton = (productId) => {
     if (wishListItem.includes(productId)) {
       setWishlistItem((prevWishlist) =>
@@ -72,10 +90,40 @@ export default function Products() {
     }
   };
 
-  const categories = ["Men", "Women", "Kids", "Electronics", "Home", "Accessories", "Footware", "Cosmetics"];
-
+  const categories = [
+    "Men",
+    "Women",
+    "Kids",
+    "Electronics",
+    "Home",
+    "Accessories",
+    "Footware",
+    "Cosmetics",
+  ];
 
   console.log(data);
+
+  // Filtered Products logic part
+  let filteredProducts = [];
+  if (data && data.products) {
+    filteredProducts = data.products.filter((product) => {
+      if (selectedCategories.length === 0) {
+        return true;
+      }
+      for (let i = 0; i < product.category.length; i++) {
+        if (selectedCategories.includes(product.category[i])) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  //Filter Clear Logic
+  const handleClearFilters = () => {
+    setSelectedCategories([]);
+  };
+
   return (
     <>
       <Header />
@@ -106,7 +154,13 @@ export default function Products() {
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center">
                     <h5 className="card-title">Filters</h5>
-                    <p className="text-primary">Clear</p>
+                    <p
+                      className="text-primary"
+                      style={{ cursor: "pointer" }}
+                      onClick={handleClearFilters}
+                    >
+                      Clear
+                    </p>
                   </div>
                   <hr />
 
@@ -115,11 +169,14 @@ export default function Products() {
                     {categories.map((category) => (
                       <div key={category}>
                         <label htmlFor={`${category}Checkbox`}>
-                          <input 
-                          type="checkbox"
-                          id={`${category}Checkbox`}
-                          value={category}
-                          />{" "} {category}
+                          <input
+                            type="checkbox"
+                            id={`${category}Checkbox`}
+                            value={category}
+                            checked={selectedCategories.includes(category)}
+                            onChange={handleCategoryChange}
+                          />
+                          {""} {category}
                         </label>
                       </div>
                     ))}
@@ -176,10 +233,10 @@ export default function Products() {
 
           {/* Product Card Layout */}
           <div className="col-md-9">
-            <h3>All Products</h3>
-            {data && data.products && data.products.length > 0 ? (
+            <h3>All Products ({filteredProducts.length})</h3>
+            {filteredProducts && filteredProducts.length > 0 ? (
               <div className="row g-3">
-                {data.products.map((product) => (
+                {filteredProducts.map((product) => (
                   <div className="col-6 col-md-4 col-lg-3" key={product._id}>
                     <div className="card h-100">
                       <div className="position-relative">
@@ -196,7 +253,7 @@ export default function Products() {
                           >
                             {wishListItem.includes(product._id) ? (
                               <span>
-                                <i class="bi bi-heart-fill text-danger"></i>
+                                <i className="bi bi-heart-fill text-danger"></i>
                               </span>
                             ) : (
                               <span>
