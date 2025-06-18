@@ -105,23 +105,38 @@ export default function Products() {
 
   // Filtered Products logic part
   let filteredProducts = [];
-  if (data && data.products) {
-    filteredProducts = data.products.filter((product) => {
-      if (selectedCategories.length === 0) {
-        return true;
-      }
+if (data && data.products) {
+  filteredProducts = data.products.filter((product) => {
+    let isInSelectedCategory = false;
+
+    if (selectedCategories.length === 0) {
+      isInSelectedCategory = true;
+    } else {
       for (let i = 0; i < product.category.length; i++) {
         if (selectedCategories.includes(product.category[i])) {
-          return true;
+          isInSelectedCategory = true;
+          break;
         }
       }
+    }
+
+    if (isInSelectedCategory) {
+      if (product.price <= priceRange) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
       return false;
-    });
-  }
+    }
+  });
+}
+
 
   //Filter Clear Logic
   const handleClearFilters = () => {
     setSelectedCategories([]);
+    setPriceRange(1000);
   };
 
   return (
