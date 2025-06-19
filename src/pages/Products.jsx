@@ -1,5 +1,6 @@
 import useFetch from "../useFetch";
 import { useState } from "react";
+import { FaArrowDownShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -222,36 +223,28 @@ export default function Products() {
                     selectedRating={selectedRating}
                     setSelectedRating={setSelectedRating}
                   />
-                  <hr />
-
-                  <h5>Short by</h5>
-                  <label htmlFor="LowToHigh">
-                    <input
-                      type="radio"
-                      id="LowToHigh"
-                      name="priceShort"
-                      value="LowToHigh"
-                    />{" "}
-                    Price - Low to High
-                  </label>
-                  <br />
-                  <label htmlFor="HighToLow">
-                    <input
-                      type="radio"
-                      id="HighToLow"
-                      name="priceShort"
-                      value="HighToLow"
-                    />{" "}
-                    Price - High to Low
-                  </label>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Product Card Layout */}
+          {/* All products heading, short by and card layout. */}
           <div className="col-md-9">
-            <h3>All Products ({filteredProducts.length})</h3>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3>All Products ({filteredProducts.length})</h3>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <h5 className="mb-0">Short by</h5>
+                <button className="btn btn-primary">
+                  <FaArrowDownShortWide />
+                </button>
+                <button className="btn btn-primary">
+                  <FaArrowUpWideShort />
+                </button>
+              </div>
+            </div>
+
             {filteredProducts && filteredProducts.length > 0 ? (
               <div className="row g-3">
                 {filteredProducts.map((product) => (
