@@ -24,7 +24,7 @@ function StarRating({ productRating }) {
 }
 
 //Card Star dynaic layout logic
-function StarFilterLayout() {
+function StarFilterLayout({ selectedRating, setSelectedRating }) {
   const ratingOptions = [];
   for (let rating = 4; rating >= 1; rating--) {
     const stars = [];
@@ -39,6 +39,8 @@ function StarFilterLayout() {
             id={`rating-${rating}`}
             name="starRating"
             value={rating}
+            checked={selectedRating === rating}
+            onChange={() => setSelectedRating(rating)}
           />{" "}
           {`${rating}+`} {stars}
         </label>
@@ -57,6 +59,7 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState(1000);
 
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedRating, setSelectedRating] = useState(null);
 
   //Filter checkbox logic part
   const handleCategoryChange = (event) => {
@@ -105,38 +108,35 @@ export default function Products() {
 
   // Filtered Products logic part
   let filteredProducts = [];
-if (data && data.products) {
-  filteredProducts = data.products.filter((product) => {
-    let isInSelectedCategory = false;
+  if (data && data.products) {
+    filteredProducts = data.products.filter((product) => {
+      let isInSelectedCategory = false;
 
-    if (selectedCategories.length === 0) {
-      isInSelectedCategory = true;
-    } else {
-      for (let i = 0; i < product.category.length; i++) {
-        if (selectedCategories.includes(product.category[i])) {
-          isInSelectedCategory = true;
-          break;
+      if (selectedCategories.length === 0) {
+        isInSelectedCategory = true;
+      } else {
+        for (let i = 0; i < product.category.length; i++) {
+          if (selectedCategories.includes(product.category[i])) {
+            isInSelectedCategory = true;
+            break;
+          }
         }
       }
-    }
 
-    if (isInSelectedCategory) {
-      if (product.price <= priceRange) {
-        return true;
-      } else {
-        return false;
+      if (isInSelectedCategory && product.price <= priceRange) {
+        if (selectedRating === null || product.rating >= selectedRating) {
+          return true;
+        }
       }
-    } else {
       return false;
-    }
-  });
-}
-
+    });
+  }
 
   //Filter Clear Logic
   const handleClearFilters = () => {
     setSelectedCategories([]);
     setPriceRange(1000);
+    setSelectedRating(null);
   };
 
   return (
@@ -218,7 +218,10 @@ if (data && data.products) {
                   <hr />
 
                   <h5>Rating</h5>
-                  <StarFilterLayout />
+                  <StarFilterLayout
+                    selectedRating={selectedRating}
+                    setSelectedRating={setSelectedRating}
+                  />
                   <hr />
 
                   <h5>Short by</h5>
