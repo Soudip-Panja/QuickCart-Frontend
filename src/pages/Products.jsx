@@ -1,6 +1,10 @@
 import useFetch from "../useFetch";
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { FaArrowDownShortWide, FaArrowUpWideShort } from "react-icons/fa6";
+
+import { CategoryFilter } from "../components/ListingData";
+import { CollectionFilter } from "../components/ListingData";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -57,12 +61,18 @@ export default function Products() {
   );
   const [cartItems, setCartItems] = useState([]);
   const [wishListItem, setWishlistItem] = useState([]);
-  const [priceRange, setPriceRange] = useState(1000);
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const location = useLocation();
+  const categoryFromState = location.state?.selectedCategory || null;
+
+  const [selectedCategories, setSelectedCategories] = useState(
+    categoryFromState ? [categoryFromState] : []
+  );
+  const [priceRange, setPriceRange] = useState(10000);
   const [selectedRating, setSelectedRating] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
 
-  //Filter checkbox logic part
+
   const handleCategoryChange = (event) => {
     const { value, checked } = event.target;
 
@@ -73,7 +83,6 @@ export default function Products() {
     }
   };
 
-  //Filter Layout pricerange part
   const handlePriceRangeChange = (event) => {
     setPriceRange(event.target.value);
   };
@@ -93,17 +102,6 @@ export default function Products() {
       setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
     }
   };
-
-  const categories = [
-    "Men",
-    "Women",
-    "Kids",
-    "Electronics",
-    "Home",
-    "Accessories",
-    "Footware",
-    "Cosmetics",
-  ];
 
   console.log(data);
 
@@ -133,11 +131,17 @@ export default function Products() {
     });
   }
 
-  //Filter Clear Logic
+  if (sortOrder === "lowToHigh") {
+    filteredProducts.sort((a, b) => a.price - b.price);
+  } else if (sortOrder === "highToLow") {
+    filteredProducts.sort((a, b) => b.price - a.price);
+  }
+
   const handleClearFilters = () => {
     setSelectedCategories([]);
-    setPriceRange(1000);
+    setPriceRange(10000);
     setSelectedRating(null);
+    setSortOrder(null);
   };
 
   return (
@@ -182,7 +186,7 @@ export default function Products() {
 
                   <div>
                     <h5>Category</h5>
-                    {categories.map((category) => (
+                    {CategoryFilter.map((category) => (
                       <div key={category}>
                         <label htmlFor={`${category}Checkbox`}>
                           <input
@@ -199,13 +203,30 @@ export default function Products() {
                     <hr />
                   </div>
 
+                  {/* <div className="mb-4">
+                    <h5 className="mb-2">Special Collection</h5>
+                    <div className="input-group">
+                      <select className="form-select">
+                        <option selected disabled>
+                          Choose Collection...
+                        </option>
+                        {CollectionFilter.map((collection) => (
+                          <option value={collection.optionName}>
+                            {collection.optionText}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <hr />
+                  </div> */}
+
                   <h5>Price Range</h5>
                   <label for="customRange3" class="form-label"></label>
                   <input
                     type="range"
                     class="form-range"
                     min="100"
-                    max="2000"
+                    max="20000"
                     step="100"
                     id="customRange3"
                     value={priceRange}
@@ -214,7 +235,7 @@ export default function Products() {
                   <div className="d-flex justify-content-between align-items-center">
                     <p>₹100</p>
                     <p className="badge bg-primary">₹{priceRange}</p>
-                    <p>₹2000</p>
+                    <p>₹20000</p>
                   </div>
                   <hr />
 
@@ -231,20 +252,32 @@ export default function Products() {
           {/* All products heading, short by and card layout. */}
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
+              {/* All products count, heading and shortlist button */}
               <div>
                 <h3>All Products ({filteredProducts.length})</h3>
               </div>
               <div className="d-flex align-items-center gap-2">
-                <h5 className="mb-0">Short by</h5>
-                <button className="btn btn-primary">
-                  <FaArrowDownShortWide />
-                </button>
-                <button className="btn btn-primary">
+                <h5 className="mb-0">Sort by</h5>
+                <button
+                  className={`btn ${
+                    sortOrder === "highToLow" ? "btn-success" : "btn-primary"
+                  }`}
+                  onClick={() => setSortOrder("highToLow")}
+                >
                   <FaArrowUpWideShort />
+                </button>
+                <button
+                  className={`btn ${
+                    sortOrder === "lowToHigh" ? "btn-success" : "btn-primary"
+                  }`}
+                  onClick={() => setSortOrder("lowToHigh")}
+                >
+                  <FaArrowDownShortWide />
                 </button>
               </div>
             </div>
 
+            {/* Card Layout */}
             {filteredProducts && filteredProducts.length > 0 ? (
               <div className="row g-3">
                 {filteredProducts.map((product) => (

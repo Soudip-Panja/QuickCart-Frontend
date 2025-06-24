@@ -78,7 +78,7 @@ export default function Home() {
         <div className="row g-3">
           {CategoryData.map((item, index) => (
             <div className="col-6 col-md-4 col-lg-3" key={index}>
-              <Link to="/products" className="text-decoration-none">
+              <Link to="/products" state={{ selectedCategory: item.cateory }} className="text-decoration-none">
                 <div className="card hover-card h-100 shadow-sm">
                   <div
                     className="position-relative"

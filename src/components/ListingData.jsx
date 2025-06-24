@@ -57,6 +57,43 @@ export const CategoryData = [
   },
 ];
 
+export const CategoryFilter = [
+  "Men",
+  "Women",
+  "Kids",
+  "Electronics",
+  "Home",
+  "Accessories",
+  "Footwear",
+  "Cosmetics",
+];
+
+export const CollectionFilter = [
+  {
+    optionName: "Summer Collection",
+    optionText: "Summer Holiday Collection"
+  },
+  {
+    optionName: "Winter Collection", 
+    optionText: "Winter Warm Collection"
+  },
+  {
+    optionName: "Shoes Collection", 
+    optionText: "Stylish Shoe Collection"
+  },
+  {
+    optionName: "Accessories Collection",
+    optionText: "Accessories Style Collection"
+  },
+  {
+    optionName: "Cosmetic Collection",
+    optionText: "Beauty Cosmetics Collection"
+  }
+];
+
+
+
+
 export const SpecialCollectionData = [
   {
     heading: "Sizzle in Style",
@@ -78,5 +115,5 @@ export const SpecialCollectionData = [
     caption:
       "From sneakers to stilettos – walk the talk with our latest collection.",
     collectionImg: "https://shorturl.at/qhBLT",
-  }
+  },
 ];
