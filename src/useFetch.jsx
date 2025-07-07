@@ -1,26 +1,24 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const useFetch = (url) => {
+function useFetch(url) {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  console.log("data in useFetch", data);
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
         const response = await fetch(url);
-
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error("Failed to fetch data");
         }
-
-        const responseData = await response.json();
-        setData(responseData);
-        setError(null);
-      } catch (error) {
-        console.error("API Error:", error.message);
-        setError(error);
+        const json = await response.json();
+        setData(json);
+      } catch (err) {
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -30,6 +28,6 @@ const useFetch = (url) => {
   }, [url]);
 
   return { data, loading, error };
-};
+}
 
 export default useFetch;

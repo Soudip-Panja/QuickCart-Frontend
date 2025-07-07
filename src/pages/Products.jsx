@@ -1,5 +1,6 @@
 import useFetch from "../useFetch";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { FaArrowDownShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 
@@ -72,7 +73,6 @@ export default function Products() {
   const [selectedRating, setSelectedRating] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
 
-
   const handleCategoryChange = (event) => {
     const { value, checked } = event.target;
 
@@ -103,7 +103,7 @@ export default function Products() {
     }
   };
 
-  console.log(data);
+
 
   // Filtered Products logic part
   let filteredProducts = [];
@@ -282,13 +282,22 @@ export default function Products() {
               <div className="row g-3">
                 {filteredProducts.map((product) => (
                   <div className="col-6 col-md-4 col-lg-3" key={product._id}>
-                    <div className="card h-100">
+                    <div className="card h-100 d-flex flex-column">
                       <div className="position-relative">
-                        <img
-                          src={product.imageUrl[0]}
-                          alt={product.name}
-                          className="card-img-top"
-                        />
+                        <Link
+                          to={`/products/${product._id}`}
+                          style={{ textDecoration: "none" }}
+                        >
+                          <img
+                            src={product.imageUrl[0]}
+                            alt={product.name}
+                            className="card-img-top"
+                            style={{
+                              height: "250px",
+                              objectFit: "cover",
+                            }}
+                          />
+                        </Link>
                         <div className="position-absolute top-0 end-0 m-2">
                           <button
                             onClick={() => handleWishlistButton(product._id)}
@@ -314,7 +323,7 @@ export default function Products() {
                         </div>
                       </div>
 
-                      <div className="card-body">
+                      <div className="card-body d-flex flex-column">
                         <div
                           className="d-flex justify-content-between align-items-center"
                           style={{ fontSize: "13px" }}
@@ -335,24 +344,26 @@ export default function Products() {
                           </p>
                         </div>
 
-                        <button
-                          className={`w-100 ${
-                            cartItems.includes(product._id)
-                              ? "btn btn-success"
-                              : "btn btn-primary"
-                          }`}
-                          onClick={() => handleCartButton(product._id)}
-                        >
-                          {cartItems.includes(product._id) ? (
-                            <span>
-                              <i className="bi bi-cart4"></i> Go to Cart
-                            </span>
-                          ) : (
-                            <span>
-                              <i className="bi bi-cart3"></i> Add to Cart
-                            </span>
-                          )}
-                        </button>
+                        <div className="mt-auto">
+                          <button
+                            className={`w-100 ${
+                              cartItems.includes(product._id)
+                                ? "btn btn-success"
+                                : "btn btn-primary"
+                            }`}
+                            onClick={() => handleCartButton(product._id)}
+                          >
+                            {cartItems.includes(product._id) ? (
+                              <span>
+                                <i className="bi bi-cart4"></i> Go to Cart
+                              </span>
+                            ) : (
+                              <span>
+                                <i className="bi bi-cart3"></i> Add to Cart
+                              </span>
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
