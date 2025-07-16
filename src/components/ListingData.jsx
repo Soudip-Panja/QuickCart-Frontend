@@ -41,11 +41,11 @@ export const CategoryData = [
   },
   {
     cateory: "Home",
-    imageUrl: "https://shorturl.at/8JkOk",
+    imageUrl: "https://shorturl.at/KhEQK",
   },
   {
     cateory: "Accessories",
-    imageUrl: "https://shorturl.at/DMomD",
+    imageUrl: "https://shorturl.at/ziy1U",
   },
   {
     cateory: "Footware",
@@ -53,7 +53,7 @@ export const CategoryData = [
   },
   {
     cateory: "Cosmetics",
-    imageUrl: "https://shorturl.at/bqcwd",
+    imageUrl: "https://shorturl.at/moe4b",
   },
 ];
 
@@ -98,7 +98,7 @@ export const SpecialCollectionData = [
   {
     heading: "Sizzle in Style",
     caption: "Hot deals, cool outfits – shop your summer essentials now!",
-    collectionImg: "https://shorturl.at/EMC5T",
+    collectionImg: "https://shorturl.at/4wEI0",
   },
   {
     heading: "Let It Snow, Let It Style",

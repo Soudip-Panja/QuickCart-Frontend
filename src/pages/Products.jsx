@@ -72,6 +72,10 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState(10000);
   const [selectedRating, setSelectedRating] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
+  const [selectedCollection, setSelectedCollection] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
 
   const handleCategoryChange = (event) => {
     const { value, checked } = event.target;
@@ -103,8 +107,6 @@ export default function Products() {
     }
   };
 
-
-
   // Filtered Products logic part
   let filteredProducts = [];
   if (data && data.products) {
@@ -122,14 +124,24 @@ export default function Products() {
         }
       }
 
-      if (isInSelectedCategory && product.price <= priceRange) {
-        if (selectedRating === null || product.rating >= selectedRating) {
-          return true;
-        }
-      }
-      return false;
+      const isInPriceRange = product.price <= priceRange;
+      const isAboveRating =
+        selectedRating === null || product.rating >= selectedRating;
+      const isInSelectedCollection =
+        selectedCollection === "" ||
+        (product.collectionType &&
+          product.collectionType.includes(selectedCollection));
+
+      return (
+        isInSelectedCategory &&
+        isInPriceRange &&
+        isAboveRating &&
+        isInSelectedCollection
+      );
     });
   }
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   if (sortOrder === "lowToHigh") {
     filteredProducts.sort((a, b) => a.price - b.price);
@@ -137,12 +149,26 @@ export default function Products() {
     filteredProducts.sort((a, b) => b.price - a.price);
   }
 
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
+
   const handleClearFilters = () => {
     setSelectedCategories([]);
     setPriceRange(10000);
     setSelectedRating(null);
     setSortOrder(null);
+    setSelectedCollection("");
   };
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  console.log(data);
 
   return (
     <>
@@ -203,28 +229,35 @@ export default function Products() {
                     <hr />
                   </div>
 
-                  {/* <div className="mb-4">
+                  <div className="mb-4">
                     <h5 className="mb-2">Special Collection</h5>
                     <div className="input-group">
-                      <select className="form-select">
-                        <option selected disabled>
+                      <select
+                        className="form-select"
+                        value={selectedCollection}
+                        onChange={(e) => setSelectedCollection(e.target.value)}
+                      >
+                        <option value="" disabled>
                           Choose Collection...
                         </option>
                         {CollectionFilter.map((collection) => (
-                          <option value={collection.optionName}>
+                          <option
+                            key={collection.optionName}
+                            value={collection.optionName}
+                          >
                             {collection.optionText}
                           </option>
                         ))}
                       </select>
                     </div>
                     <hr />
-                  </div> */}
+                  </div>
 
                   <h5>Price Range</h5>
-                  <label for="customRange3" class="form-label"></label>
+                  <label htmlFor="customRange3" className="form-label"></label>
                   <input
                     type="range"
-                    class="form-range"
+                    className="form-range"
                     min="100"
                     max="20000"
                     step="100"
@@ -278,9 +311,9 @@ export default function Products() {
             </div>
 
             {/* Card Layout */}
-            {filteredProducts && filteredProducts.length > 0 ? (
+            {currentProducts && currentProducts.length > 0 ? (
               <div className="row g-3">
-                {filteredProducts.map((product) => (
+                {currentProducts.map((product) => (
                   <div className="col-6 col-md-4 col-lg-3" key={product._id}>
                     <div className="card h-100 d-flex flex-column">
                       <div className="position-relative">
@@ -372,6 +405,59 @@ export default function Products() {
             ) : (
               <p>No products available.</p>
             )}
+          </div>
+          {/* Pagination */}
+          <div className="row">
+            <div className="col-md-3"></div>
+            <div className="col-md-9 d-flex justify-content-center pt-4">
+              {totalPages > 1 && (
+                <nav aria-label="Page navigation example" className="mt-4">
+                  <ul className="pagination justify-content-center">
+                    <li
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                      >
+                        Previous
+                      </button>
+                    </li>
+
+                    {Array.from({ length: totalPages }, (_, index) => (
+                      <li
+                        key={index + 1}
+                        className={`page-item ${
+                          currentPage === index + 1 ? "active" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+
+                    <li
+                      className={`page-item ${
+                        currentPage === totalPages ? "disabled" : ""
+                      }`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
+            </div>
           </div>
         </div>
       </main>
