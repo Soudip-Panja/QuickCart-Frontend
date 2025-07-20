@@ -1,5 +1,5 @@
 import useFetch from "../useFetch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { FaArrowDownShortWide, FaArrowUpWideShort } from "react-icons/fa6";
@@ -62,6 +62,22 @@ export default function Products() {
   );
   const [cartItems, setCartItems] = useState([]);
   const [wishListItem, setWishlistItem] = useState([]);
+  useEffect(() => {
+  async function fetchWishlistItems() {
+    try {
+      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
+      const data = await res.json();
+
+      const productIdsInWishlist = data.map((item) => item.productId._id);
+      setWishlistItem(productIdsInWishlist);
+    } catch (error) {
+      console.error("Failed to fetch wishlist items:", error);
+    }
+  }
+
+  fetchWishlistItems();
+}, []);
+
 
   const location = useLocation();
   const categoryFromState = location.state?.selectedCategory || null;
@@ -97,15 +113,63 @@ export default function Products() {
   };
 
   //Card Layout wishlist button part
-  const handleWishlistButton = (productId) => {
-    if (wishListItem.includes(productId)) {
-      setWishlistItem((prevWishlist) =>
-        prevWishlist.filter((id) => id !== productId)
+const handleWishlistButton = async (productId) => {
+  if (wishListItem.includes(productId)) {
+    // Remove from frontend first
+    setWishlistItem((prevWishlist) =>
+      prevWishlist.filter((id) => id !== productId)
+    );
+
+    // 🧠 Step 1: Get the wishlist item by productId
+    try {
+      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
+      const data = await res.json();
+
+      const wishlistItem = data.find(
+        (item) => item.productId._id === productId
       );
-    } else {
-      setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
+
+      if (wishlistItem) {
+        // 🧠 Step 2: Delete by _id (not productId)
+        const deleteRes = await fetch(
+          `https://shopping-backend-blush.vercel.app/wishlist/${wishlistItem._id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (!deleteRes.ok) {
+          console.error("Failed to remove from wishlist");
+        }
+      } else {
+        console.warn("Product not found in wishlist");
+      }
+    } catch (err) {
+      console.error("Error removing from wishlist:", err);
     }
-  };
+  } else {
+    // Add to frontend
+    setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
+
+    // Add to backend
+    try {
+      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productId }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to add to wishlist");
+      }
+    } catch (err) {
+      console.error("Error adding to wishlist:", err);
+    }
+  }
+};
+
 
   // Filtered Products logic part
   let filteredProducts = [];
