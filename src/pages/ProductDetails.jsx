@@ -36,24 +36,32 @@ export default function ProductDetails() {
     `https://shopping-backend-blush.vercel.app/products/${productId}`
   );
 
+  console.log(data);
+
+  // Loading state - similar to Cart.jsx
   if (loading) {
     return (
       <>
         <Header />
         <main className="container py-5 text-center">
-          <p>Loading...</p>
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </main>
         <Footer />
       </>
     );
   }
 
+  // Error state - similar to Cart.jsx
   if (error || !data?.product) {
     return (
       <>
         <Header />
         <main className="container py-5 text-center">
-          <p>Error loading product details.</p>
+          <div className="alert alert-danger">
+            {error || "Error loading product details."}
+          </div>
         </main>
         <Footer />
       </>
@@ -61,8 +69,6 @@ export default function ProductDetails() {
   }
 
   const product = data.product;
-
-  console.log(data);
 
   return (
     <>

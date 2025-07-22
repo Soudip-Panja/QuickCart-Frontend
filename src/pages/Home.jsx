@@ -34,15 +34,22 @@ export default function Home() {
                 key={index}
                 className={`carousel-item ${index === 0 ? "active" : ""}`}
               >
-                <img
-                  src={item.imageUrl}
-                  className="d-block w-100"
-                  alt={item.heading}
-                />
-                <div className="carousel-caption bg-dark bg-opacity-50 rounded">
-                  <h5 className="d-block">{item.heading}</h5>
-                  <p className="d-none d-md-block">{item.content}</p>
-                </div>
+                <Link 
+                  to="/products" 
+                  state={{ selectedCollection: item.collectionType }}
+                  className="text-decoration-none"
+                >
+                  <img
+                    src={item.imageUrl}
+                    className="d-block w-100"
+                    alt={item.heading}
+                    style={{ cursor: "pointer" }}
+                  />
+                  <div className="carousel-caption bg-dark bg-opacity-50 rounded">
+                    <h5 className="d-block text-white">{item.heading}</h5>
+                    <p className="d-none d-md-block text-white">{item.content}</p>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>
@@ -132,6 +139,7 @@ export default function Home() {
                     </p>
                     <Link
                       to="/products"
+                      state={{ selectedCollection: collection.collectionType }}
                       className="btn btn-primary btn-sm px-4 py-2 fw-semibold"
                     >
                       Shop Now

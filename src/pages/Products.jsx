@@ -103,6 +103,7 @@ export default function Products() {
 
   const location = useLocation();
   const categoryFromState = location.state?.selectedCategory || null;
+  const collectionFromState = location.state?.selectedCollection || null;
 
   const [selectedCategories, setSelectedCategories] = useState(
     categoryFromState ? [categoryFromState] : []
@@ -110,7 +111,9 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState(10000);
   const [selectedRating, setSelectedRating] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
-  const [selectedCollection, setSelectedCollection] = useState("");
+  const [selectedCollection, setSelectedCollection] = useState(
+    collectionFromState || ""
+  );
 
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
@@ -127,8 +130,6 @@ export default function Products() {
   const handlePriceRangeChange = (event) => {
     setPriceRange(event.target.value);
   };
-
-
 
   // Filtered Products logic part
   let filteredProducts = [];
@@ -191,13 +192,38 @@ export default function Products() {
 
   console.log(data);
 
+  // Loading state - similar to Cart.jsx
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="container py-5 text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // Error state - similar to Cart.jsx
+  if (error) {
+    return (
+      <>
+        <Header />
+        <main className="container py-5 text-center">
+          <div className="alert alert-danger">{error}</div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
       <main className="container py-5">
-        {loading && <p>loading....</p>}
-        {error && <p>error.....</p>}
-
         {/* Filter Layout Part */}
         <div className="d-md-none mb-3">
           <button
@@ -256,7 +282,7 @@ export default function Products() {
                         value={selectedCollection}
                         onChange={(e) => setSelectedCollection(e.target.value)}
                       >
-                        <option value="" disabled>
+                        <option value="">
                           Choose Collection...
                         </option>
                         {CollectionFilter.map((collection) => (

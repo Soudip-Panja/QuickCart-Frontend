@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { Link } from "react-router-dom";
 
 export default function WishList() {
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -74,52 +75,69 @@ export default function WishList() {
       <Header />
       <main className="container py-5">
         <h1 className="mb-4">My Wishlist ({wishlistItems.length})</h1>
-        {wishlistItems.length > 0 ? (
-          <ul className="list-group">
-            {wishlistItems.map((item) => (
-              <li
-                key={item._id}
-                className="list-group-item d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-between"
-              >
-                <div className="d-flex flex-column flex-md-row align-items-center">
-                  <img
-                    src={item.productId.imageUrl}
-                    alt={item.productId.name}
-                    className="rounded me-md-4 mb-3 mb-md-0 bg-white border p-2"
-                    style={{
-                      width: "120px",
-                      height: "120px",
-                      objectFit: "contain",
-                    }}
-                  />
-                  <div className="text-center text-md-start">
-                    <h5 className="mb-1">{item.productId.name}</h5>
-                    <strong className="text-primary">
-                      ₹{item.productId.price}
-                    </strong>
-                    <p className="mb-1 text-muted">{item.productId.category}</p>
+        
+        <div className="card p-3">
+          {wishlistItems.length > 0 ? (
+            <ul className="list-group list-group-flush">
+              {wishlistItems.map((item) => (
+                <li
+                  key={item._id}
+                  className="list-group-item d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-between"
+                >
+                  <div className="d-flex flex-column flex-md-row align-items-center">
+                    <img
+                      src={item.productId.imageUrl}
+                      alt={item.productId.name}
+                      className="rounded me-md-4 mb-3 mb-md-0 bg-white border p-2"
+                      style={{
+                        width: "120px",
+                        height: "120px",
+                        objectFit: "contain",
+                      }}
+                    />
+                    <div className="text-center text-md-start">
+                      <h5 className="mb-1">{item.productId.name}</h5>
+                      <strong className="text-primary">
+                        ₹{item.productId.price}
+                      </strong>
+                      <p className="mb-1 text-muted">{item.productId.category}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="d-flex gap-2 mt-3 mt-md-0">
-                  <button
-                    className="btn btn-outline-danger"
-                    onClick={() => handleRemove(item._id)}
-                  >
-                    <i className="bi bi-trash-fill me-2"></i>
-                    Remove
-                  </button>
-                  <button className="btn btn-outline-primary">
-                    <i className="bi bi-cart3 me-2"></i>
-                    Move to Cart
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No items in your wishlist.</p>
-        )}
+                  <div className="d-flex gap-2 mt-3 mt-md-0">
+                    <button
+                      className="btn btn-outline-danger"
+                      onClick={() => handleRemove(item._id)}
+                    >
+                      <i className="bi bi-trash-fill me-2"></i>
+                      Remove
+                    </button>
+                    <button className="btn btn-outline-primary">
+                      <i className="bi bi-cart3 me-2"></i>
+                      Move to Cart
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center py-5">
+              <i className="bi bi-heart display-1 text-muted"></i>
+              <h4 className="mt-3">Your wishlist is empty</h4>
+              <p className="text-muted">Save items you love for later!</p>
+            </div>
+          )}
+          
+          {wishlistItems.length === 0 && (
+            <div className="mt-4">
+              <button className="btn btn-outline-primary">
+                <Link style={{ textDecoration: "none" }} to="/products">
+                  <i className="bi bi-arrow-left"></i> Continue Shopping
+                </Link>
+              </button>
+            </div>
+          )}
+        </div>
       </main>
       <Footer />
     </>
