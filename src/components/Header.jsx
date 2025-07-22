@@ -7,13 +7,29 @@ export default function Header() {
   const { cartItems, wishListItem } = useContext(CartWishlistContext);
 
   useEffect(() => {
-    const savedTheme = document.documentElement.getAttribute("data-bs-theme");
-    if (savedTheme === "dark") setDarkMode(true);
+    // Check localStorage first, then fall back to system preference
+    const savedTheme = localStorage.getItem("theme");
+    let isDarkMode = false;
+
+    if (savedTheme) {
+      isDarkMode = savedTheme === "dark";
+    } else {
+      // If no saved preference, check system preference
+      isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+
+    setDarkMode(isDarkMode);
+    document.documentElement.setAttribute("data-bs-theme", isDarkMode ? "dark" : "light");
   }, []);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
+    
+    // Save to localStorage
+    localStorage.setItem("theme", newMode ? "dark" : "light");
+    
+    // Update DOM attribute
     document.documentElement.setAttribute("data-bs-theme", newMode ? "dark" : "light");
   };
 
