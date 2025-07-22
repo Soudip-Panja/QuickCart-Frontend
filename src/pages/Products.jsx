@@ -62,22 +62,40 @@ export default function Products() {
   );
   const [cartItems, setCartItems] = useState([]);
   const [wishListItem, setWishlistItem] = useState([]);
+
+  // Fetch initial cart state
   useEffect(() => {
-  async function fetchWishlistItems() {
-    try {
-      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
-      const data = await res.json();
-
-      const productIdsInWishlist = data.map((item) => item.productId._id);
-      setWishlistItem(productIdsInWishlist);
-    } catch (error) {
-      console.error("Failed to fetch wishlist items:", error);
+    async function fetchCartItems() {
+      try {
+        const res = await fetch(
+          "https://shopping-backend-soudip-panjas-projects.vercel.app/cart"
+        );
+        const data = await res.json();
+        const productIdsInCart = data.map((item) => item.productId._id);
+        setCartItems(productIdsInCart);
+      } catch (error) {
+        console.error("Failed to fetch cart items:", error);
+      }
     }
-  }
+    fetchCartItems();
+  }, []);
 
-  fetchWishlistItems();
-}, []);
-
+  // Fetch initial wishlist state
+  useEffect(() => {
+    async function fetchWishlistItems() {
+      try {
+        const res = await fetch(
+          "https://shopping-backend-blush.vercel.app/wishlist"
+        );
+        const data = await res.json();
+        const productIdsInWishlist = data.map((item) => item.productId._id);
+        setWishlistItem(productIdsInWishlist);
+      } catch (error) {
+        console.error("Failed to fetch wishlist items:", error);
+      }
+    }
+    fetchWishlistItems();
+  }, []);
 
   const location = useLocation();
   const categoryFromState = location.state?.selectedCategory || null;
@@ -95,7 +113,6 @@ export default function Products() {
 
   const handleCategoryChange = (event) => {
     const { value, checked } = event.target;
-
     if (checked) {
       setSelectedCategories([...selectedCategories, value]);
     } else {
@@ -107,76 +124,90 @@ export default function Products() {
     setPriceRange(event.target.value);
   };
 
-  //Card Layout add to cart button color changer
-  const handleCartButton = (productId) => {
+  //Card Layout add to cart button logic
+  const handleCartButton = async (productId) => {
+    if (cartItems.includes(productId)) {
+      return;
+    }
     setCartItems((prevCart) => [...prevCart, productId]);
+    try {
+      const res = await fetch(
+        "https://shopping-backend-soudip-panjas-projects.vercel.app/cart",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ productId }),
+        }
+      );
+      if (!res.ok) {
+        console.error("Failed to add item to cart");
+        setCartItems((prevCart) => prevCart.filter((id) => id !== productId));
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      setCartItems((prevCart) => prevCart.filter((id) => id !== productId));
+    }
   };
 
   //Card Layout wishlist button part
-const handleWishlistButton = async (productId) => {
-  if (wishListItem.includes(productId)) {
-    // Remove from frontend first
-    setWishlistItem((prevWishlist) =>
-      prevWishlist.filter((id) => id !== productId)
-    );
-
-    // 🧠 Step 1: Get the wishlist item by productId
-    try {
-      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
-      const data = await res.json();
-
-      const wishlistItem = data.find(
-        (item) => item.productId._id === productId
+  const handleWishlistButton = async (productId) => {
+    if (wishListItem.includes(productId)) {
+      setWishlistItem((prevWishlist) =>
+        prevWishlist.filter((id) => id !== productId)
       );
-
-      if (wishlistItem) {
-        // 🧠 Step 2: Delete by _id (not productId)
-        const deleteRes = await fetch(
-          `https://shopping-backend-blush.vercel.app/wishlist/${wishlistItem._id}`,
+      try {
+        const res = await fetch(
+          "https://shopping-backend-blush.vercel.app/wishlist"
+        );
+        const data = await res.json();
+        const wishlistItem = data.find(
+          (item) => item.productId._id === productId
+        );
+        if (wishlistItem) {
+          const deleteRes = await fetch(
+            `https://shopping-backend-blush.vercel.app/wishlist/${wishlistItem._id}`,
+            {
+              method: "DELETE",
+            }
+          );
+          if (!deleteRes.ok) {
+            console.error("Failed to remove from wishlist");
+          }
+        } else {
+          console.warn("Product not found in wishlist");
+        }
+      } catch (err) {
+        console.error("Error removing from wishlist:", err);
+      }
+    } else {
+      setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
+      try {
+        const res = await fetch(
+          "https://shopping-backend-blush.vercel.app/wishlist",
           {
-            method: "DELETE",
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId }),
           }
         );
-
-        if (!deleteRes.ok) {
-          console.error("Failed to remove from wishlist");
+        if (!res.ok) {
+          console.error("Failed to add to wishlist");
         }
-      } else {
-        console.warn("Product not found in wishlist");
+      } catch (err) {
+        console.error("Error adding to wishlist:", err);
       }
-    } catch (err) {
-      console.error("Error removing from wishlist:", err);
     }
-  } else {
-    // Add to frontend
-    setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
-
-    // Add to backend
-    try {
-      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      if (!res.ok) {
-        console.error("Failed to add to wishlist");
-      }
-    } catch (err) {
-      console.error("Error adding to wishlist:", err);
-    }
-  }
-};
-
+  };
 
   // Filtered Products logic part
   let filteredProducts = [];
   if (data && data.products) {
     filteredProducts = data.products.filter((product) => {
       let isInSelectedCategory = false;
-
       if (selectedCategories.length === 0) {
         isInSelectedCategory = true;
       } else {
@@ -187,7 +218,6 @@ const handleWishlistButton = async (productId) => {
           }
         }
       }
-
       const isInPriceRange = product.price <= priceRange;
       const isAboveRating =
         selectedRating === null || product.rating >= selectedRating;
@@ -273,7 +303,6 @@ const handleWishlistButton = async (productId) => {
                     </p>
                   </div>
                   <hr />
-
                   <div>
                     <h5>Category</h5>
                     {CategoryFilter.map((category) => (
@@ -292,7 +321,6 @@ const handleWishlistButton = async (productId) => {
                     ))}
                     <hr />
                   </div>
-
                   <div className="mb-4">
                     <h5 className="mb-2">Special Collection</h5>
                     <div className="input-group">
@@ -316,7 +344,6 @@ const handleWishlistButton = async (productId) => {
                     </div>
                     <hr />
                   </div>
-
                   <h5>Price Range</h5>
                   <label htmlFor="customRange3" className="form-label"></label>
                   <input
@@ -335,7 +362,6 @@ const handleWishlistButton = async (productId) => {
                     <p>₹20000</p>
                   </div>
                   <hr />
-
                   <h5>Rating</h5>
                   <StarFilterLayout
                     selectedRating={selectedRating}
@@ -349,7 +375,6 @@ const handleWishlistButton = async (productId) => {
           {/* All products heading, short by and card layout. */}
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              {/* All products count, heading and shortlist button */}
               <div>
                 <h3>All Products ({filteredProducts.length})</h3>
               </div>
@@ -412,14 +437,12 @@ const handleWishlistButton = async (productId) => {
                             )}
                           </button>
                         </div>
-
                         <div>
                           <p className="badge bg-dark text-white text-uppercase position-absolute bottom-0 start-0 m-2">
                             {product.brand}
                           </p>
                         </div>
                       </div>
-
                       <div className="card-body d-flex flex-column">
                         <div
                           className="d-flex justify-content-between align-items-center"
@@ -433,14 +456,12 @@ const handleWishlistButton = async (productId) => {
                             {product.rating})
                           </p>
                         </div>
-
                         <div className="text-center">
                           <h3 className="card-title">{product.name}</h3>
                           <p>
                             <strong>₹{product.price}</strong>
                           </p>
                         </div>
-
                         <div className="mt-auto">
                           <button
                             className={`w-100 ${
@@ -451,9 +472,12 @@ const handleWishlistButton = async (productId) => {
                             onClick={() => handleCartButton(product._id)}
                           >
                             {cartItems.includes(product._id) ? (
-                              <span>
+                              <Link
+                                to="/cart"
+                                className="text-white text-decoration-none"
+                              >
                                 <i className="bi bi-cart4"></i> Go to Cart
-                              </span>
+                              </Link>
                             ) : (
                               <span>
                                 <i className="bi bi-cart3"></i> Add to Cart
@@ -489,7 +513,6 @@ const handleWishlistButton = async (productId) => {
                         Previous
                       </button>
                     </li>
-
                     {Array.from({ length: totalPages }, (_, index) => (
                       <li
                         key={index + 1}
@@ -505,7 +528,6 @@ const handleWishlistButton = async (productId) => {
                         </button>
                       </li>
                     ))}
-
                     <li
                       className={`page-item ${
                         currentPage === totalPages ? "disabled" : ""

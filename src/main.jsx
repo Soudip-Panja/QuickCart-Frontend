@@ -11,6 +11,8 @@ import Products from "./pages/Products.jsx";
 import ProductDetails from "./pages/ProductDetails.jsx";
 import WishList from "./pages/WishList.jsx";
 import Cart from "./pages/Cart.jsx";
+import Address from "./pages/Address.jsx";
+import Order from "./pages/Order.jsx";
 
 const router = createBrowserRouter([
   {
@@ -30,9 +32,17 @@ const router = createBrowserRouter([
     element: <WishList />,
   },
   {
-    path: "cart",
+    path: "/cart",
     element: <Cart />,
   },
+  {
+    path: "/address",
+    element: <Address />
+  },
+  {
+    path: "/order",
+    element: <Order />
+  }
 ]);
 
 createRoot(document.getElementById("root")).render(
