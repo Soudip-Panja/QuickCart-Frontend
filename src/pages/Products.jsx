@@ -7,6 +7,9 @@ import { FaArrowDownShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 import { CategoryFilter } from "../components/ListingData";
 import { CollectionFilter } from "../components/ListingData";
 
+import { useContext } from "react";
+import { CartWishlistContext } from "../context/CartWishlistContext";
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -60,8 +63,9 @@ export default function Products() {
   const { data, loading, error } = useFetch(
     "https://shopping-backend-blush.vercel.app/products"
   );
-  const [cartItems, setCartItems] = useState([]);
-  const [wishListItem, setWishlistItem] = useState([]);
+
+  const { cartItems, wishListItem, handleAddToCart, handleWishlistToggle } =
+    useContext(CartWishlistContext);
 
   // Fetch initial cart state
   useEffect(() => {
@@ -124,84 +128,7 @@ export default function Products() {
     setPriceRange(event.target.value);
   };
 
-  //Card Layout add to cart button logic
-  const handleCartButton = async (productId) => {
-    if (cartItems.includes(productId)) {
-      return;
-    }
-    setCartItems((prevCart) => [...prevCart, productId]);
-    try {
-      const res = await fetch(
-        "https://shopping-backend-soudip-panjas-projects.vercel.app/cart",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ productId }),
-        }
-      );
-      if (!res.ok) {
-        console.error("Failed to add item to cart");
-        setCartItems((prevCart) => prevCart.filter((id) => id !== productId));
-      }
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      setCartItems((prevCart) => prevCart.filter((id) => id !== productId));
-    }
-  };
 
-  //Card Layout wishlist button part
-  const handleWishlistButton = async (productId) => {
-    if (wishListItem.includes(productId)) {
-      setWishlistItem((prevWishlist) =>
-        prevWishlist.filter((id) => id !== productId)
-      );
-      try {
-        const res = await fetch(
-          "https://shopping-backend-blush.vercel.app/wishlist"
-        );
-        const data = await res.json();
-        const wishlistItem = data.find(
-          (item) => item.productId._id === productId
-        );
-        if (wishlistItem) {
-          const deleteRes = await fetch(
-            `https://shopping-backend-blush.vercel.app/wishlist/${wishlistItem._id}`,
-            {
-              method: "DELETE",
-            }
-          );
-          if (!deleteRes.ok) {
-            console.error("Failed to remove from wishlist");
-          }
-        } else {
-          console.warn("Product not found in wishlist");
-        }
-      } catch (err) {
-        console.error("Error removing from wishlist:", err);
-      }
-    } else {
-      setWishlistItem((prevWishlist) => [...prevWishlist, productId]);
-      try {
-        const res = await fetch(
-          "https://shopping-backend-blush.vercel.app/wishlist",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ productId }),
-          }
-        );
-        if (!res.ok) {
-          console.error("Failed to add to wishlist");
-        }
-      } catch (err) {
-        console.error("Error adding to wishlist:", err);
-      }
-    }
-  };
 
   // Filtered Products logic part
   let filteredProducts = [];
@@ -422,7 +349,7 @@ export default function Products() {
                         </Link>
                         <div className="position-absolute top-0 end-0 m-2">
                           <button
-                            onClick={() => handleWishlistButton(product._id)}
+                         onClick={() => handleWishlistToggle(product._id)}
                             className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
                             style={{ width: "40px", height: "40px" }}
                           >
@@ -469,7 +396,7 @@ export default function Products() {
                                 ? "btn btn-success"
                                 : "btn btn-primary"
                             }`}
-                            onClick={() => handleCartButton(product._id)}
+                            onClick={() => handleAddToCart(product._id)}
                           >
                             {cartItems.includes(product._id) ? (
                               <Link

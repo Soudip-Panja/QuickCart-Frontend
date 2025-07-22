@@ -1,8 +1,12 @@
 import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import useFetch from "../useFetch";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+
+import { useContext } from "react";
+import { CartWishlistContext } from "../context/CartWishlistContext";
 
 function StarRating({ productRating }) {
   const renderStar = (rating) => {
@@ -24,6 +28,9 @@ function StarRating({ productRating }) {
 
 export default function ProductDetails() {
   const { productId } = useParams();
+
+  const { cartItems, wishListItem, handleAddToCart, handleWishlistToggle } =
+    useContext(CartWishlistContext);
 
   const { data, loading, error } = useFetch(
     `https://shopping-backend-blush.vercel.app/products/${productId}`
@@ -97,7 +104,7 @@ export default function ProductDetails() {
                 <p className="card-text py-3">{product.description}</p>
 
                 <div className="d-flex align-items-center gap-3">
-                  <div className="d-flex align-items-center">
+                  {/* <div className="d-flex align-items-center">
                     <button className="btn btn-outline-primary rounded-end-0 px-3">
                       -
                     </button>
@@ -105,10 +112,41 @@ export default function ProductDetails() {
                     <button className="btn btn-outline-primary rounded-start-0 px-3">
                       +
                     </button>
-                  </div>
-                  <button className="btn btn-primary">Add to Cart</button>
-                  <button className="btn btn-outline-danger">
-                    <i class="bi bi-heart"></i>
+                  </div> */}
+                  
+                  {/* Fixed Add to Cart Button */}
+                  <button
+                    className={`btn ${
+                      cartItems.includes(product._id)
+                        ? "btn btn-success"
+                        : "btn btn-primary"
+                    }`}
+                    onClick={() => handleAddToCart(product._id)}
+                  >
+                    {cartItems.includes(product._id) ? (
+                      <Link
+                        to="/cart"
+                        className="text-white text-decoration-none"
+                      >
+                        <i className="bi bi-cart4"></i> Go to Cart
+                      </Link>
+                    ) : (
+                      <span>
+                        <i className="bi bi-cart3"></i> Add to Cart
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Fixed Wishlist Button */}
+                  <button
+                    onClick={() => handleWishlistToggle(product._id)}
+                    className="btn btn-outline-danger"
+                  >
+                    {wishListItem.includes(product._id) ? (
+                      <i className="bi bi-heart-fill text-danger"></i>
+                    ) : (
+                      <i className="bi bi-heart"></i>
+                    )}
                   </button>
                 </div>
                 <br />
@@ -150,7 +188,7 @@ export default function ProductDetails() {
           <nav>
             <div className="nav nav-tabs" id="nav-tab" role="tablist">
               <button
-                class="nav-link active"
+                className="nav-link active"
                 id="nav-home-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#nav-home"
@@ -163,7 +201,7 @@ export default function ProductDetails() {
               </button>
 
               <button
-                class="nav-link"
+                className="nav-link"
                 id="nav-profile-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#nav-profile"
@@ -178,21 +216,21 @@ export default function ProductDetails() {
           </nav>
           <div className="tab-content" id="nav-tabContent">
             <div
-              class=" mx-3 my-3 tab-pane fade show active"
+              className="mx-3 my-3 tab-pane fade show active"
               id="nav-home"
               role="tabpanel"
               aria-labelledby="nav-home-tab"
-              tabindex="0"
+              tabIndex="0"
             >
               {product.description}
             </div>
 
             <div
-              class="mx-3 my-3 tab-pane fade"
+              className="mx-3 my-3 tab-pane fade"
               id="nav-profile"
               role="tabpanel"
               aria-labelledby="nav-profile-tab"
-              tabindex="0"
+              tabIndex="0"
             >
               <table className="table border">
                 <thead>

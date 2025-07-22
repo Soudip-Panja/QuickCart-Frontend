@@ -1,38 +1,28 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { CartWishlistContext } from "../context/CartWishlistContext";
 
 export default function Header() {
   const [darkMode, setDarkMode] = useState(false);
+  const { cartItems, wishListItem } = useContext(CartWishlistContext);
 
   useEffect(() => {
-    // Check for saved theme preference or default to light mode
     const savedTheme = document.documentElement.getAttribute("data-bs-theme");
-    if (savedTheme === "dark") {
-      setDarkMode(true);
-    }
+    if (savedTheme === "dark") setDarkMode(true);
   }, []);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
-
-    // Apply theme to document
-    if (newMode) {
-      document.documentElement.setAttribute("data-bs-theme", "dark");
-    } else {
-      document.documentElement.setAttribute("data-bs-theme", "light");
-    }
+    document.documentElement.setAttribute("data-bs-theme", newMode ? "dark" : "light");
   };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container">
           <Link className="navbar-brand" to="/">
-            <img
-              src="/QuickCart Nav Logo.png"
-              style={{ height: "50px" }}
-              alt="QuickCart Logo"
-            />
+            <img src="/QuickCart Nav Logo.png" style={{ height: "50px" }} alt="QuickCart Logo" />
           </Link>
 
           <button
@@ -68,7 +58,6 @@ export default function Header() {
               <li className="nav-item dropdown">
                 <Link
                   className="nav-link dropdown-toggle d-flex align-items-center"
-                  href="#"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
@@ -79,49 +68,49 @@ export default function Header() {
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
                     <Link className="dropdown-item" to="/profile">
-                      <i className="bi bi-person me-2"></i>
-                      My Profile
+                      <i className="bi bi-person me-2"></i> My Profile
                     </Link>
                   </li>
                   <li>
                     <Link className="dropdown-item" to="/orders">
-                      <i className="bi bi-bag me-2"></i>
-                      My Orders
+                      <i className="bi bi-bag me-2"></i> My Orders
                     </Link>
                   </li>
-                  <li>
-                    <hr className="dropdown-divider" />
-                  </li>
+                  <li><hr className="dropdown-divider" /></li>
                   <li>
                     <Link
                       className="dropdown-item"
-                      href="#"
+                      to="#"
                       onClick={(e) => {
                         e.preventDefault();
                         console.log("Logout clicked");
                       }}
                     >
-                      <i className="bi bi-box-arrow-right me-2"></i>
-                      Logout
+                      <i className="bi bi-box-arrow-right me-2"></i> Logout
                     </Link>
                   </li>
                 </ul>
               </li>
 
-              <li className="nav-item">
-                <Link
-                  className="nav-link d-flex align-items-center"
-                  to="/wishlist"
-                >
-                  <i className="bi bi-heart me-1"></i>
-                  Wishlist
+              <li className="nav-item position-relative">
+                <Link className="nav-link d-flex align-items-center" to="/wishlist">
+                  <i className="bi bi-heart me-1"></i> Wishlist
+                  {wishListItem.length > 0 && (
+                    <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                      {wishListItem.length}
+                    </span>
+                  )}
                 </Link>
               </li>
 
-              <li className="nav-item">
+              <li className="nav-item position-relative">
                 <Link className="nav-link d-flex align-items-center" to="/cart">
-                  <i className="bi bi-cart3 me-1"></i>
-                  Cart
+                  <i className="bi bi-cart3 me-1"></i> Cart
+                  {cartItems.length > 0 && (
+                    <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                      {cartItems.length}
+                    </span>
+                  )}
                 </Link>
               </li>
 
@@ -129,13 +118,9 @@ export default function Header() {
                 <button
                   className="nav-link btn btn-link d-flex align-items-center"
                   onClick={toggleDarkMode}
-                  aria-label={
-                    darkMode ? "Switch to light mode" : "Switch to dark mode"
-                  }
+                  aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
                 >
-                  <i
-                    className={`bi ${darkMode ? "bi-sun" : "bi-moon"} me-1`}
-                  ></i>
+                  <i className={`bi ${darkMode ? "bi-sun" : "bi-moon"} me-1`}></i>
                   {darkMode ? "Light" : "Dark"}
                 </button>
               </li>

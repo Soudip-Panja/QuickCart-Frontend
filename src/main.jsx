@@ -5,6 +5,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import CartWishlistProvider from "./context/CartWishlistContext";
+
 
 import App from "./App.jsx";
 import Products from "./pages/Products.jsx";
@@ -47,6 +49,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <CartWishlistProvider>
+      <RouterProvider router={router} />
+    </CartWishlistProvider>
   </StrictMode>
 );
+
