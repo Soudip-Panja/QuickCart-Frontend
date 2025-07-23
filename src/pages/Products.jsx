@@ -64,8 +64,14 @@ export default function Products() {
     "https://shopping-backend-blush.vercel.app/products"
   );
 
-  const { cartItems, wishListItem, handleAddToCart, handleWishlistToggle } =
-    useContext(CartWishlistContext);
+  const { 
+    cartItems, 
+    wishListItem, 
+    handleAddToCart, 
+    handleWishlistToggle,
+    searchProducts,
+    updateSearchQuery
+  } = useContext(CartWishlistContext);
 
   // Fetch initial cart state
   useEffect(() => {
@@ -104,19 +110,26 @@ export default function Products() {
   const location = useLocation();
   const categoryFromState = location.state?.selectedCategory || null;
   const collectionFromState = location.state?.selectedCollection || null;
+  const searchQueryFromState = location.state?.searchQuery || "";
 
   const [selectedCategories, setSelectedCategories] = useState(
     categoryFromState ? [categoryFromState] : []
   );
-  const [priceRange, setPriceRange] = useState(10000);
+  const [priceRange, setPriceRange] = useState(1500);
   const [selectedRating, setSelectedRating] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
   const [selectedCollection, setSelectedCollection] = useState(
     collectionFromState || ""
   );
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromState);
 
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleCategoryChange = (event) => {
     const { value, checked } = event.target;
@@ -131,10 +144,19 @@ export default function Products() {
     setPriceRange(event.target.value);
   };
 
-  // Filtered Products logic part
-  let filteredProducts = [];
-  if (data && data.products) {
-    filteredProducts = data.products.filter((product) => {
+  // Search function - searches by name, brand, and category using context function
+  const getFilteredProducts = () => {
+    if (!data || !data.products) return [];
+    
+    let filtered = data.products;
+    
+    // Apply search filter first
+    if (searchQuery) {
+      filtered = searchProducts(filtered, searchQuery);
+    }
+    
+    // Apply other filters
+    filtered = filtered.filter((product) => {
       let isInSelectedCategory = false;
       if (selectedCategories.length === 0) {
         isInSelectedCategory = true;
@@ -161,7 +183,12 @@ export default function Products() {
         isInSelectedCollection
       );
     });
-  }
+    
+    return filtered;
+  };
+
+  // Filtered Products logic part
+  let filteredProducts = getFilteredProducts();
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
@@ -184,6 +211,8 @@ export default function Products() {
     setSelectedRating(null);
     setSortOrder(null);
     setSelectedCollection("");
+    setSearchQuery(""); // Clear search query as well
+    updateSearchQuery(""); // Also clear in context
   };
 
   const handlePageChange = (pageNumber) => {
@@ -220,10 +249,37 @@ export default function Products() {
     );
   }
 
+  // Determine the page title based on search or filters
+  const getPageTitle = () => {
+    if (searchQuery) {
+      return `Search Results for "${searchQuery}" (${filteredProducts.length})`;
+    }
+    return `All Products (${filteredProducts.length})`;
+  };
+
   return (
     <>
       <Header />
       <main className="container py-5">
+        {/* Search Results Banner */}
+        {searchQuery && (
+          <div className="alert alert-info d-flex justify-content-between align-items-center mb-4">
+            <span>
+              <i className="bi bi-search me-2"></i>
+              Showing results for: <strong>"{searchQuery}"</strong>
+            </span>
+            <button 
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => {
+                setSearchQuery("");
+                updateSearchQuery("");
+              }}
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
+
         {/* Filter Layout Part */}
         <div className="d-md-none mb-3">
           <button
@@ -256,6 +312,41 @@ export default function Products() {
                     </p>
                   </div>
                   <hr />
+
+                  {/* Search within results */}
+                  {!searchQueryFromState && (
+                    <>
+                      <div className="mb-3">
+                        <h6>Search in Results</h6>
+                        <div className="input-group">
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                              setSearchQuery(e.target.value);
+                              updateSearchQuery(e.target.value);
+                            }}
+                          />
+                          {searchQuery && (
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              type="button"
+                              onClick={() => {
+                                setSearchQuery("");
+                                updateSearchQuery("");
+                              }}
+                            >
+                              <i className="bi bi-x"></i>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <hr />
+                    </>
+                  )}
+
                   <div>
                     <h5>Category</h5>
                     {CategoryFilter.map((category) => (
@@ -303,7 +394,7 @@ export default function Products() {
                     type="range"
                     className="form-range"
                     min="100"
-                    max="20000"
+                    max="3000"
                     step="100"
                     id="customRange3"
                     value={priceRange}
@@ -312,7 +403,7 @@ export default function Products() {
                   <div className="d-flex justify-content-between align-items-center">
                     <p>₹100</p>
                     <p className="badge bg-primary">₹{priceRange}</p>
-                    <p>₹20000</p>
+                    <p>₹3000</p>
                   </div>
                   <hr />
                   <h5>Rating</h5>
@@ -329,7 +420,7 @@ export default function Products() {
           <div className="col-md-9">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div>
-                <h3>All Products ({filteredProducts.length})</h3>
+                <h3>{getPageTitle()}</h3>
               </div>
               <div className="d-flex align-items-center gap-2">
                 <h5 className="mb-0">Sort by</h5>
@@ -444,7 +535,24 @@ export default function Products() {
                 ))}
               </div>
             ) : (
-              <p>No products available.</p>
+              <div className="text-center py-5">
+                <i className="bi bi-search display-1 text-muted"></i>
+                <h4 className="mt-3">No products found</h4>
+                <p className="text-muted">
+                  {searchQuery 
+                    ? `No results found for "${searchQuery}". Try different keywords or clear filters.`
+                    : "No products match your current filters. Try adjusting your search criteria."
+                  }
+                </p>
+                {(searchQuery || selectedCategories.length > 0 || selectedRating || selectedCollection) && (
+                  <button 
+                    className="btn btn-primary mt-2"
+                    onClick={handleClearFilters}
+                  >
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
             )}
           </div>
           {/* Pagination */}

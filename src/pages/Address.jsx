@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -17,8 +17,11 @@ export default function Address() {
     pincode: "",
   });
   const [editingId, setEditingId] = useState(null);
-
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const navigate = useNavigate();
   const API_URL = "https://shopping-backend-git-main-soudip-panjas-projects.vercel.app/address";
+  const CART_API_URL = "https://shopping-backend-soudip-panjas-projects.vercel.app/cart";
 
   // Fetch all addresses on mount
   useEffect(() => {
@@ -87,6 +90,32 @@ export default function Address() {
     setFormData({ ...address });
     setEditingId(address._id);
     setShowForm(true);
+  };
+
+  // New function to clear cart and redirect to order page
+  const handleDeliveryHere = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // First, get all cart items
+      const cartRes = await fetch(CART_API_URL);
+      const cartItems = await cartRes.json();
+      
+      // Delete each cart item
+      const deletePromises = cartItems.map(item => 
+        fetch(`${CART_API_URL}/${item._id}`, { method: "DELETE" })
+      );
+      
+      await Promise.all(deletePromises);
+      
+      // Redirect to order page
+      navigate("/order");
+    } catch (err) {
+      console.error("Failed to clear cart:", err);
+      alert("Something went wrong while processing your order.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -198,7 +227,20 @@ export default function Address() {
                           <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(addr._id)}>
                             <i className="bi bi-trash me-1"></i>Delete
                           </button>
-                          <Link to="/order" className="btn btn-primary">Delevery Here</Link>
+                          <button 
+                            className="btn btn-primary" 
+                            onClick={handleDeliveryHere}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Processing...
+                              </>
+                            ) : (
+                              "Delivery Here"
+                            )}
+                          </button>
                         </div>
                       </li>
                     ))}
