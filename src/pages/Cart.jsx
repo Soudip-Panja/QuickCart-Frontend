@@ -15,7 +15,7 @@ export default function Cart() {
     type: "",
   });
 
-  // Get context functions and state
+
   const { handleWishlistToggle, wishListItem } =
     useContext(CartWishlistContext);
 
@@ -42,7 +42,7 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-  // Auto-hide notification after 3 seconds
+
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -52,7 +52,7 @@ export default function Cart() {
     }
   }, [notification.show]);
 
-  // Show notification function
+
   const showNotification = (message, type) => {
     setNotification({ show: true, message, type });
   };
@@ -64,36 +64,43 @@ export default function Cart() {
     });
   };
 
-  const handleRemove = async (id) => {
-    try {
-      const res = await fetch(
-        `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      if (res.ok) {
-        setCartItems((prev) => prev.filter((item) => item._id !== id));
-        setQuantities((prev) => {
-          const updated = { ...prev };
-          delete updated[id];
-          return updated;
-        });
-      } else {
-        showNotification("Failed to remove item.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+const handleRemove = async (id) => {
+ 
+  const itemToRemove = cartItems.find(item => item._id === id);
+  const itemName = itemToRemove?.productId?.name || 'Item';
 
-  // Move to wishlist function
+  try {
+    const res = await fetch(
+      `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (res.ok) {
+      setCartItems((prev) => prev.filter((item) => item._id !== id));
+      setQuantities((prev) => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
+
+      showNotification(`${itemName} removed from cart successfully!`, "success");
+    } else {
+      showNotification("Failed to remove item.", "error");
+    }
+  } catch (err) {
+    console.error(err);
+    showNotification("Failed to remove item.", "error");
+  }
+};
+
+
   const handleMoveToWishlist = async (item) => {
     try {
-      // Add to wishlist using context
+
       await handleWishlistToggle(item.productId._id);
 
-      // Remove from cart
+
       await handleRemove(item._id);
 
       showNotification(
@@ -106,7 +113,7 @@ export default function Cart() {
     }
   };
 
-  // Check if item is already in wishlist
+
   const isInWishlist = (productId) => {
     return wishListItem.includes(productId);
   };

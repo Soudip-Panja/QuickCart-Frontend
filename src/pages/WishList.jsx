@@ -1,12 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
+import { CartWishlistContext } from "../context/CartWishlistContext";
 
 export default function WishList() {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "",
+  });
+
+  // Get context functions and state
+  const { cartItems, handleAddToCart } = useContext(CartWishlistContext);
 
   // Fetch wishlist items
   useEffect(() => {
@@ -25,6 +34,21 @@ export default function WishList() {
     fetchWishlist();
   }, []);
 
+  // Auto-hide notification after 3 seconds
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification({ show: false, message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.show]);
+
+  // Show notification function
+  const showNotification = (message, type) => {
+    setNotification({ show: true, message, type });
+  };
+
   // Remove wishlist item
   const handleRemove = async (id) => {
     try {
@@ -34,12 +58,37 @@ export default function WishList() {
 
       if (res.ok) {
         setWishlistItems((prevItems) => prevItems.filter((item) => item._id !== id));
+        showNotification("Item removed from wishlist!", "success");
       } else {
-        alert("Failed to remove item from wishlist.");
+        showNotification("Failed to remove item from wishlist.", "error");
       }
     } catch (err) {
       console.error("Error removing wishlist item:", err);
+      showNotification("Failed to remove item from wishlist.", "error");
     }
+  };
+
+
+  const handleMoveToCart = async (item) => {
+    try {
+
+      await handleAddToCart(item.productId._id);
+
+
+      await handleRemove(item._id);
+
+      showNotification(
+        `${item.productId.name} moved to cart successfully!`,
+        "success"
+      );
+    } catch (err) {
+      console.error("Error moving item to cart:", err);
+      showNotification("Failed to move item to cart.", "error");
+    }
+  };
+
+  const isInCart = (productId) => {
+    return cartItems.includes(productId);
   };
 
   if (loading) {
@@ -73,6 +122,33 @@ export default function WishList() {
   return (
     <>
       <Header />
+      {/* Notification */}
+      {notification.show && (
+        <div
+          className={`alert ${
+            notification.type === "success" ? "alert-success" : "alert-danger"
+          } alert-dismissible fade show position-fixed`}
+          style={{
+            top: "20px",
+            right: "20px",
+            zIndex: 9999,
+            minWidth: "300px",
+          }}
+          role="alert"
+        >
+          <strong>
+            {notification.type === "success" ? "Success!" : "Error!"}
+          </strong>{" "}
+          {notification.message}
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() =>
+              setNotification({ show: false, message: "", type: "" })
+            }
+          ></button>
+        </div>
+      )}
       <main className="container py-5">
         <h1 className="mb-4">My Wishlist ({wishlistItems.length})</h1>
         
@@ -112,10 +188,20 @@ export default function WishList() {
                       <i className="bi bi-trash-fill me-2"></i>
                       Remove
                     </button>
-                    <button className="btn btn-outline-primary">
-                      <i className="bi bi-cart3 me-2"></i>
-                      Move to Cart
-                    </button>
+                    {isInCart(item.productId._id) ? (
+                      <button className="btn btn-secondary" disabled>
+                        <i className="bi bi-cart-check-fill me-2"></i>
+                        Already in Cart
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn btn-outline-primary"
+                        onClick={() => handleMoveToCart(item)}
+                      >
+                        <i className="bi bi-cart3 me-2"></i>
+                        Move to Cart
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}
