@@ -18,6 +18,11 @@ export default function Address() {
   });
   const [editingId, setEditingId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "",
+  });
   
   const navigate = useNavigate();
   const API_URL = "https://shopping-backend-git-main-soudip-panjas-projects.vercel.app/address";
@@ -27,6 +32,21 @@ export default function Address() {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  // Auto-hide notification after 3 seconds
+  useEffect(() => {
+    if (notification.show) {
+      const timer = setTimeout(() => {
+        setNotification({ show: false, message: "", type: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification.show]);
+
+  // Show notification function
+  const showNotification = (message, type) => {
+    setNotification({ show: true, message, type });
+  };
 
   const fetchAddresses = async () => {
     try {
@@ -67,10 +87,17 @@ export default function Address() {
         state: "",
         pincode: "",
       });
+      
+      // Show success notification
+      const successMessage = editingId 
+        ? "Address updated successfully!" 
+        : "Address added successfully!";
+      showNotification(successMessage, "success");
+      
       setEditingId(null);
     } catch (err) {
       console.error(err);
-      alert("Something went wrong.");
+      showNotification("Something went wrong while saving address.", "error");
     }
   };
 
@@ -80,9 +107,11 @@ export default function Address() {
     try {
       const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
-      fetchAddresses();
+      await fetchAddresses();
+      showNotification("Address deleted successfully!", "success");
     } catch (err) {
       console.error(err);
+      showNotification("Failed to delete address.", "error");
     }
   };
 
@@ -168,6 +197,33 @@ export default function Address() {
   return (
     <>
       <Header />
+      {/* Notification */}
+      {notification.show && (
+        <div
+          className={`alert ${
+            notification.type === "success" ? "alert-success" : "alert-danger"
+          } alert-dismissible fade show position-fixed`}
+          style={{
+            top: "20px",
+            right: "20px",
+            zIndex: 9999,
+            minWidth: "300px",
+          }}
+          role="alert"
+        >
+          <strong>
+            {notification.type === "success" ? "Success!" : "Error!"}
+          </strong>{" "}
+          {notification.message}
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() =>
+              setNotification({ show: false, message: "", type: "" })
+            }
+          ></button>
+        </div>
+      )}
       <main className="container py-4">
         <h1 className="text-center">Checkout</h1>
         <div className="py-3">
@@ -219,7 +275,7 @@ export default function Address() {
 
                   <div className="mb-3">
                     <label htmlFor="mobile" className="form-label">Mobile Number</label>
-                    <input id="mobile" value={formData.mobile} onChange={handleChange} type="text" maxLength="10" className="form-control" />
+                    <input id="mobile" value={formData.mobile} onChange={handleChange} type="number" maxLength="10" className="form-control" />
                   </div>
 
                   <div className="mb-3">
@@ -244,7 +300,7 @@ export default function Address() {
 
                   <div className="mb-3">
                     <label htmlFor="pincode" className="form-label">Pincode</label>
-                    <input id="pincode" value={formData.pincode} onChange={handleChange} type="text" maxLength="7" className="form-control" />
+                    <input id="pincode" value={formData.pincode} onChange={handleChange} type="number" maxLength="7" className="form-control" />
                   </div>
 
                   <div className="d-flex gap-2">
