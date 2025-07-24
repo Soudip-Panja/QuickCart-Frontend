@@ -7,7 +7,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import CartWishlistProvider from "./context/CartWishlistContext";
 
-
 import App from "./App.jsx";
 import Products from "./pages/Products.jsx";
 import ProductDetails from "./pages/ProductDetails.jsx";
@@ -15,6 +14,7 @@ import WishList from "./pages/WishList.jsx";
 import Cart from "./pages/Cart.jsx";
 import Address from "./pages/Address.jsx";
 import Order from "./pages/Order.jsx";
+import Profile from "./pages/Profile.jsx";
 
 const router = createBrowserRouter([
   {
@@ -39,11 +39,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/address",
-    element: <Address />
+    element: <Address />,
   },
   {
     path: "/order",
-    element: <Order />
+    element: <Order />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />
   }
 ]);
 
@@ -54,4 +58,3 @@ createRoot(document.getElementById("root")).render(
     </CartWishlistProvider>
   </StrictMode>
 );
-
