@@ -15,6 +15,7 @@ import Cart from "./pages/Cart.jsx";
 import Address from "./pages/Address.jsx";
 import Order from "./pages/Order.jsx";
 import Profile from "./pages/Profile.jsx";
+import MyOrder from "./pages/MyOrder.jsx";
 
 const router = createBrowserRouter([
   {
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
   {
     path: "/profile",
     element: <Profile />
+  },
+  {
+    path: "/myOrder",
+    element: <MyOrder />
   }
 ]);
 

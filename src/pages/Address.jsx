@@ -92,14 +92,61 @@ export default function Address() {
     setShowForm(true);
   };
 
-  // New function to clear cart and redirect to order page
-  const handleDeliveryHere = async () => {
+  // Updated function to save order details and clear cart
+  const handleDeliveryHere = async (selectedAddress) => {
     setIsProcessing(true);
     
     try {
       // First, get all cart items
       const cartRes = await fetch(CART_API_URL);
       const cartItems = await cartRes.json();
+      
+      if (cartItems.length === 0) {
+        alert("Your cart is empty!");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Get quantities from localStorage (saved from Cart page)
+      const savedQuantities = JSON.parse(localStorage.getItem('cartQuantities') || '{}');
+
+      // Create order object
+      const orderData = {
+        orderId: `ORD${Date.now()}`,
+        orderDate: new Date().toISOString(),
+        items: cartItems.map(item => {
+          const quantity = savedQuantities[item._id] || 1;
+          return {
+            productId: item.productId._id,
+            name: item.productId.name,
+            brand: item.productId.brand,
+            category: item.productId.category,
+            price: item.productId.price,
+            imageUrl: item.productId.imageUrl,
+            quantity: quantity,
+          };
+        }),
+        deliveryAddress: {
+          firstName: selectedAddress.firstName,
+          lastName: selectedAddress.lastName,
+          mobile: selectedAddress.mobile,
+          street: selectedAddress.street,
+          locality: selectedAddress.locality,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          pincode: selectedAddress.pincode,
+        },
+        totalAmount: cartItems.reduce((acc, item) => {
+          const quantity = savedQuantities[item._id] || 1;
+          return acc + (item.productId.price * quantity);
+        }, 0),
+        status: "Order Placed"
+      };
+
+      // Save to localStorage
+      const existingOrders = JSON.parse(localStorage.getItem('myOrders') || '[]');
+      existingOrders.unshift(orderData); // Add new order at the beginning
+      localStorage.setItem('myOrders', JSON.stringify(existingOrders));
       
       // Delete each cart item
       const deletePromises = cartItems.map(item => 
@@ -229,7 +276,7 @@ export default function Address() {
                           </button>
                           <button 
                             className="btn btn-primary" 
-                            onClick={handleDeliveryHere}
+                            onClick={() => handleDeliveryHere(addr)}
                             disabled={isProcessing}
                           >
                             {isProcessing ? (

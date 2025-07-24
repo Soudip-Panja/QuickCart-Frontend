@@ -15,7 +15,6 @@ export default function Cart() {
     type: "",
   });
 
-
   const { handleWishlistToggle, wishListItem } =
     useContext(CartWishlistContext);
 
@@ -27,9 +26,12 @@ export default function Cart() {
         );
         const data = await res.json();
         setCartItems(data);
+        
+        // Load quantities from localStorage or initialize with 1
+        const savedQuantities = JSON.parse(localStorage.getItem('cartQuantities') || '{}');
         const qtyMap = {};
         data.forEach((item) => {
-          qtyMap[item._id] = 1;
+          qtyMap[item._id] = savedQuantities[item._id] || 1;
         });
         setQuantities(qtyMap);
         setLoading(false);
@@ -42,6 +44,10 @@ export default function Cart() {
     fetchCart();
   }, []);
 
+  // Save quantities to localStorage whenever quantities change
+  useEffect(() => {
+    localStorage.setItem('cartQuantities', JSON.stringify(quantities));
+  }, [quantities]);
 
   useEffect(() => {
     if (notification.show) {
@@ -51,7 +57,6 @@ export default function Cart() {
       return () => clearTimeout(timer);
     }
   }, [notification.show]);
-
 
   const showNotification = (message, type) => {
     setNotification({ show: true, message, type });
@@ -64,43 +69,38 @@ export default function Cart() {
     });
   };
 
-const handleRemove = async (id) => {
- 
-  const itemToRemove = cartItems.find(item => item._id === id);
-  const itemName = itemToRemove?.productId?.name || 'Item';
+  const handleRemove = async (id) => {
+    const itemToRemove = cartItems.find(item => item._id === id);
+    const itemName = itemToRemove?.productId?.name || 'Item';
 
-  try {
-    const res = await fetch(
-      `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${id}`,
-      {
-        method: "DELETE",
+    try {
+      const res = await fetch(
+        `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (res.ok) {
+        setCartItems((prev) => prev.filter((item) => item._id !== id));
+        setQuantities((prev) => {
+          const updated = { ...prev };
+          delete updated[id];
+          return updated;
+        });
+
+        showNotification(`${itemName} removed from cart successfully!`, "success");
+      } else {
+        showNotification("Failed to remove item.", "error");
       }
-    );
-    if (res.ok) {
-      setCartItems((prev) => prev.filter((item) => item._id !== id));
-      setQuantities((prev) => {
-        const updated = { ...prev };
-        delete updated[id];
-        return updated;
-      });
-
-      showNotification(`${itemName} removed from cart successfully!`, "success");
-    } else {
+    } catch (err) {
+      console.error(err);
       showNotification("Failed to remove item.", "error");
     }
-  } catch (err) {
-    console.error(err);
-    showNotification("Failed to remove item.", "error");
-  }
-};
-
+  };
 
   const handleMoveToWishlist = async (item) => {
     try {
-
       await handleWishlistToggle(item.productId._id);
-
-
       await handleRemove(item._id);
 
       showNotification(
@@ -112,7 +112,6 @@ const handleRemove = async (id) => {
       showNotification("Failed to move item to wishlist.", "error");
     }
   };
-
 
   const isInWishlist = (productId) => {
     return wishListItem.includes(productId);
