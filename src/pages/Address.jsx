@@ -18,7 +18,7 @@ export default function Address() {
     pincode: "",
   });
   const [editingId, setEditingId] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingAddressId, setProcessingAddressId] = useState(null);
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -78,7 +78,7 @@ export default function Address() {
     // Handle pincode - only numbers, max 7 digits
     if (id === 'pincode') {
       const numericValue = value.replace(/\D/g, ''); // Remove non-numeric characters
-      if (numericValue.length <= 7) {
+      if (numericValue.length <= 6) {
         setFormData((prev) => ({ ...prev, [id]: numericValue }));
       }
       return;
@@ -148,7 +148,7 @@ export default function Address() {
 
   // Updated function to save order details and clear cart
   const handleDeliveryHere = async (selectedAddress) => {
-    setIsProcessing(true);
+    setProcessingAddressId(selectedAddress._id);
     
     try {
       // First, get all cart items
@@ -157,7 +157,7 @@ export default function Address() {
       
       if (cartItems.length === 0) {
         alert("Your cart is empty!");
-        setIsProcessing(false);
+        setProcessingAddressId(null);
         return;
       }
 
@@ -221,7 +221,7 @@ export default function Address() {
       console.error("Failed to clear cart:", err);
       alert("Something went wrong while processing your order.");
     } finally {
-      setIsProcessing(false);
+      setProcessingAddressId(null);
     }
   };
 
@@ -345,7 +345,7 @@ export default function Address() {
                       onChange={handleChange} 
                       type="text" 
                       className="form-control" 
-                      placeholder="Enter 6-7 digit pincode"
+                      placeholder="Enter 6 digit pincode"
                       inputMode="numeric"
                     />
                   </div>
@@ -380,9 +380,9 @@ export default function Address() {
                           <button 
                             className="btn btn-primary" 
                             onClick={() => handleDeliveryHere(addr)}
-                            disabled={isProcessing}
+                            disabled={processingAddressId === addr._id}
                           >
-                            {isProcessing ? (
+                            {processingAddressId === addr._id ? (
                               <>
                                 <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                                 Processing...
