@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CartWishlistContext } from "../context/CartWishlistContext"; // Add this import
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -25,6 +26,10 @@ export default function Address() {
   });
   
   const navigate = useNavigate();
+  
+  // Add context to access refreshCartItems
+  const { refreshCartItems } = useContext(CartWishlistContext);
+  
   const API_URL = "https://shopping-backend-git-main-soudip-panjas-projects.vercel.app/address";
   const CART_API_URL = "https://shopping-backend-soudip-panjas-projects.vercel.app/cart";
 
@@ -60,6 +65,26 @@ export default function Address() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
+    
+    // Handle mobile number - only numbers, max 10 digits
+    if (id === 'mobile') {
+      const numericValue = value.replace(/\D/g, ''); // Remove non-numeric characters
+      if (numericValue.length <= 10) {
+        setFormData((prev) => ({ ...prev, [id]: numericValue }));
+      }
+      return;
+    }
+    
+    // Handle pincode - only numbers, max 7 digits
+    if (id === 'pincode') {
+      const numericValue = value.replace(/\D/g, ''); // Remove non-numeric characters
+      if (numericValue.length <= 7) {
+        setFormData((prev) => ({ ...prev, [id]: numericValue }));
+      }
+      return;
+    }
+    
+    // For other fields, set value normally
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
@@ -177,12 +202,18 @@ export default function Address() {
       existingOrders.unshift(orderData); // Add new order at the beginning
       localStorage.setItem('myOrders', JSON.stringify(existingOrders));
       
-      // Delete each cart item
+      // Delete each cart item from backend
       const deletePromises = cartItems.map(item => 
         fetch(`${CART_API_URL}/${item._id}`, { method: "DELETE" })
       );
       
       await Promise.all(deletePromises);
+      
+      // **KEY CHANGE: Refresh cart items in context after clearing cart**
+      await refreshCartItems();
+      
+      // Clear quantities from localStorage as well
+      localStorage.removeItem('cartQuantities');
       
       // Redirect to order page
       navigate("/order");
@@ -275,7 +306,15 @@ export default function Address() {
 
                   <div className="mb-3">
                     <label htmlFor="mobile" className="form-label">Mobile Number</label>
-                    <input id="mobile" value={formData.mobile} onChange={handleChange} type="number" maxLength="10" className="form-control" />
+                    <input 
+                      id="mobile" 
+                      value={formData.mobile} 
+                      onChange={handleChange} 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="Enter 10-digit mobile number"
+                      inputMode="numeric"
+                    />
                   </div>
 
                   <div className="mb-3">
@@ -300,7 +339,15 @@ export default function Address() {
 
                   <div className="mb-3">
                     <label htmlFor="pincode" className="form-label">Pincode</label>
-                    <input id="pincode" value={formData.pincode} onChange={handleChange} type="number" maxLength="7" className="form-control" />
+                    <input 
+                      id="pincode" 
+                      value={formData.pincode} 
+                      onChange={handleChange} 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="Enter 6-7 digit pincode"
+                      inputMode="numeric"
+                    />
                   </div>
 
                   <div className="d-flex gap-2">
