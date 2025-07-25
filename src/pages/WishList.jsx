@@ -251,11 +251,13 @@ export default function WishList() {
           
           {wishlistItems.length === 0 && (
             <div className="mt-4">
-              <button className="btn btn-outline-primary">
-                <Link style={{ textDecoration: "none" }} to="/products">
+
+
+              <Link className="btn btn-outline-primary" style={{ textDecoration: "none" }} to="/products">
                   <i className="bi bi-arrow-left"></i> Continue Shopping
-                </Link>
-              </button>
+              </Link>
+
+
             </div>
           )}
         </div>
