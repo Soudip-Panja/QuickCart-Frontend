@@ -1,4 +1,3 @@
-
 import { createContext, useState, useEffect } from "react";
 
 export const CartWishlistContext = createContext();
@@ -8,7 +7,6 @@ export default function CartWishlistProvider({ children }) {
   const [wishListItem, setWishlistItem] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState([]);
-
 
   useEffect(() => {
     try {
@@ -21,7 +19,6 @@ export default function CartWishlistProvider({ children }) {
     }
   }, []);
 
-
   useEffect(() => {
     try {
       localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
@@ -29,7 +26,6 @@ export default function CartWishlistProvider({ children }) {
       console.error("Failed to save search history:", err);
     }
   }, [searchHistory]);
-
 
   useEffect(() => {
     async function fetchCart() {
@@ -45,7 +41,6 @@ export default function CartWishlistProvider({ children }) {
     fetchCart();
   }, []);
 
-
   useEffect(() => {
     async function fetchWishlist() {
       try {
@@ -59,7 +54,6 @@ export default function CartWishlistProvider({ children }) {
     }
     fetchWishlist();
   }, []);
-
 
   const handleAddToCart = async (productId) => {
     if (cartItems.includes(productId)) return;
@@ -80,10 +74,8 @@ export default function CartWishlistProvider({ children }) {
     }
   };
 
-
   const handleWishlistToggle = async (productId) => {
     if (wishListItem.includes(productId)) {
-
       setWishlistItem(prev => prev.filter(id => id !== productId));
       try {
         const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
@@ -115,6 +107,28 @@ export default function CartWishlistProvider({ children }) {
     }
   };
 
+  // Add functions to manually refresh cart and wishlist data
+  const refreshCartItems = async () => {
+    try {
+      const res = await fetch("https://shopping-backend-soudip-panjas-projects.vercel.app/cart");
+      const data = await res.json();
+      const ids = data.map(item => item.productId._id);
+      setCartItems(ids);
+    } catch (err) {
+      console.error("Failed to refresh cart items:", err);
+    }
+  };
+
+  const refreshWishlistItems = async () => {
+    try {
+      const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
+      const data = await res.json();
+      const ids = data.map(item => item.productId._id);
+      setWishlistItem(ids);
+    } catch (err) {
+      console.error("Failed to refresh wishlist items:", err);
+    }
+  };
 
   const updateSearchQuery = (query) => {
     setSearchQuery(query);
@@ -125,7 +139,6 @@ export default function CartWishlistProvider({ children }) {
     
     const trimmedQuery = query.trim();
     
-
     const updatedHistory = [
       trimmedQuery,
       ...searchHistory.filter(item => item.toLowerCase() !== trimmedQuery.toLowerCase())
@@ -189,6 +202,8 @@ export default function CartWishlistProvider({ children }) {
         wishListItem,
         handleAddToCart,
         handleWishlistToggle,
+        refreshCartItems,        // Add this
+        refreshWishlistItems,    // Add this
         
         // Search functionality
         searchQuery,

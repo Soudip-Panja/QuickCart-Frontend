@@ -70,42 +70,20 @@ export default function Products() {
     handleAddToCart, 
     handleWishlistToggle,
     searchProducts,
-    updateSearchQuery
+    updateSearchQuery,
+    refreshCartItems,      // Add this
+    refreshWishlistItems   // Add this
   } = useContext(CartWishlistContext);
 
-  // Fetch initial cart state
+  // Remove the duplicate fetch useEffects - the context already handles this
+  // But you can add a refresh call if needed when component mounts
   useEffect(() => {
-    async function fetchCartItems() {
-      try {
-        const res = await fetch(
-          "https://shopping-backend-soudip-panjas-projects.vercel.app/cart"
-        );
-        const data = await res.json();
-        const productIdsInCart = data.map((item) => item.productId._id);
-        setCartItems(productIdsInCart);
-      } catch (error) {
-        console.error("Failed to fetch cart items:", error);
-      }
+    // Only refresh if the context data seems empty and we're not in loading state
+    if (!loading && data && cartItems.length === 0 && wishListItem.length === 0) {
+      refreshCartItems();
+      refreshWishlistItems();
     }
-    fetchCartItems();
-  }, []);
-
-  // Fetch initial wishlist state
-  useEffect(() => {
-    async function fetchWishlistItems() {
-      try {
-        const res = await fetch(
-          "https://shopping-backend-blush.vercel.app/wishlist"
-        );
-        const data = await res.json();
-        const productIdsInWishlist = data.map((item) => item.productId._id);
-        setWishlistItem(productIdsInWishlist);
-      } catch (error) {
-        console.error("Failed to fetch wishlist items:", error);
-      }
-    }
-    fetchWishlistItems();
-  }, []);
+  }, [loading, data]); // Depend on loading and data to ensure they're ready
 
   const location = useLocation();
   const categoryFromState = location.state?.selectedCategory || null;

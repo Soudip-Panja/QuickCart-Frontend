@@ -15,7 +15,14 @@ export default function WishList() {
   });
 
   // Get context functions and state
-  const { cartItems, handleAddToCart } = useContext(CartWishlistContext);
+  const { 
+    cartItems, 
+    wishListItem, 
+    handleAddToCart, 
+    handleWishlistToggle,
+    refreshWishlistItems,
+    refreshCartItems 
+  } = useContext(CartWishlistContext);
 
   // Fetch wishlist items
   useEffect(() => {
@@ -49,33 +56,41 @@ export default function WishList() {
     setNotification({ show: true, message, type });
   };
 
-  // Remove wishlist item
-  const handleRemove = async (id) => {
+  // Remove wishlist item - updated to use context
+  const handleRemove = async (item) => {
     try {
-      const res = await fetch(`https://shopping-backend-blush.vercel.app/wishlist/${id}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        setWishlistItems((prevItems) => prevItems.filter((item) => item._id !== id));
-        showNotification("Item removed from wishlist!", "success");
-      } else {
-        showNotification("Failed to remove item from wishlist.", "error");
-      }
+      // Use context's wishlist toggle function to remove
+      await handleWishlistToggle(item.productId._id);
+      
+      // Update local state immediately for better UX
+      setWishlistItems((prevItems) => prevItems.filter((wishItem) => wishItem._id !== item._id));
+      
+      showNotification(`${item.productId.name} removed from wishlist!`, "success");
     } catch (err) {
       console.error("Error removing wishlist item:", err);
       showNotification("Failed to remove item from wishlist.", "error");
+      
+      // Refresh to get the correct state from server if there's an error
+      try {
+        const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
+        const data = await res.json();
+        setWishlistItems(data);
+      } catch (fetchErr) {
+        console.error("Error refreshing wishlist:", fetchErr);
+      }
     }
   };
 
-
   const handleMoveToCart = async (item) => {
     try {
-
+      // Add to cart using context function
       await handleAddToCart(item.productId._id);
-
-
-      await handleRemove(item._id);
+      
+      // Remove from wishlist using context function
+      await handleWishlistToggle(item.productId._id);
+      
+      // Update local state immediately for better UX
+      setWishlistItems((prevItems) => prevItems.filter((wishItem) => wishItem._id !== item._id));
 
       showNotification(
         `${item.productId.name} moved to cart successfully!`,
@@ -84,12 +99,32 @@ export default function WishList() {
     } catch (err) {
       console.error("Error moving item to cart:", err);
       showNotification("Failed to move item to cart.", "error");
+      
+      // Refresh both cart and wishlist states if there's an error
+      try {
+        const res = await fetch("https://shopping-backend-blush.vercel.app/wishlist");
+        const data = await res.json();
+        setWishlistItems(data);
+        refreshCartItems();
+      } catch (fetchErr) {
+        console.error("Error refreshing data:", fetchErr);
+      }
     }
   };
 
   const isInCart = (productId) => {
     return cartItems.includes(productId);
   };
+
+  // Sync local wishlist with context state changes
+  useEffect(() => {
+    if (!loading) {
+      // Filter out items that are no longer in the context wishlist
+      setWishlistItems(prevItems => 
+        prevItems.filter(item => wishListItem.includes(item.productId._id))
+      );
+    }
+  }, [wishListItem, loading]);
 
   if (loading) {
     return (
@@ -183,7 +218,7 @@ export default function WishList() {
                   <div className="d-flex gap-2 mt-3 mt-md-0">
                     <button
                       className="btn btn-outline-danger"
-                      onClick={() => handleRemove(item._id)}
+                      onClick={() => handleRemove(item)}
                     >
                       <i className="bi bi-trash-fill me-2"></i>
                       Remove
