@@ -15,8 +15,13 @@ export default function Cart() {
     type: "",
   });
 
-  const { handleWishlistToggle, wishListItem } =
-    useContext(CartWishlistContext);
+  const { 
+    cartItems: contextCartItems,
+    handleWishlistToggle, 
+    wishListItem,
+    refreshCartItems,
+    refreshWishlistItems
+  } = useContext(CartWishlistContext);
 
   useEffect(() => {
     async function fetchCart() {
@@ -58,6 +63,28 @@ export default function Cart() {
     }
   }, [notification.show]);
 
+  // Sync local cart with context state changes
+  useEffect(() => {
+    if (!loading && contextCartItems) {
+      // Filter out items that are no longer in the context cart
+      setCartItems(prevItems => 
+        prevItems.filter(item => contextCartItems.includes(item.productId._id))
+      );
+      
+      // Clean up quantities for removed items
+      setQuantities(prevQuantities => {
+        const updatedQuantities = { ...prevQuantities };
+        Object.keys(updatedQuantities).forEach(itemId => {
+          const cartItem = cartItems.find(item => item._id === itemId);
+          if (!cartItem || !contextCartItems.includes(cartItem.productId._id)) {
+            delete updatedQuantities[itemId];
+          }
+        });
+        return updatedQuantities;
+      });
+    }
+  }, [contextCartItems, loading]);
+
   const showNotification = (message, type) => {
     setNotification({ show: true, message, type });
   };
@@ -69,47 +96,103 @@ export default function Cart() {
     });
   };
 
-  const handleRemove = async (id) => {
-    const itemToRemove = cartItems.find(item => item._id === id);
-    const itemName = itemToRemove?.productId?.name || 'Item';
+  const handleRemove = async (item) => {
+    const itemName = item?.productId?.name || 'Item';
 
     try {
+      // Remove from backend
       const res = await fetch(
-        `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${id}`,
+        `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${item._id}`,
         {
           method: "DELETE",
         }
       );
+      
       if (res.ok) {
-        setCartItems((prev) => prev.filter((item) => item._id !== id));
+        // Update local state immediately for better UX
+        setCartItems((prev) => prev.filter((cartItem) => cartItem._id !== item._id));
         setQuantities((prev) => {
           const updated = { ...prev };
-          delete updated[id];
+          delete updated[item._id];
           return updated;
         });
+
+        // Refresh context cart state to update other components
+        await refreshCartItems();
 
         showNotification(`${itemName} removed from cart successfully!`, "success");
       } else {
         showNotification("Failed to remove item.", "error");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error removing cart item:", err);
       showNotification("Failed to remove item.", "error");
+      
+      // Refresh cart data if there's an error
+      try {
+        const res = await fetch(
+          "https://shopping-backend-soudip-panjas-projects.vercel.app/cart"
+        );
+        const data = await res.json();
+        setCartItems(data);
+        await refreshCartItems();
+      } catch (fetchErr) {
+        console.error("Error refreshing cart:", fetchErr);
+      }
     }
   };
 
   const handleMoveToWishlist = async (item) => {
     try {
+      // Add to wishlist using context function
       await handleWishlistToggle(item.productId._id);
-      await handleRemove(item._id);
-
-      showNotification(
-        `${item.productId.name} moved to wishlist successfully!`,
-        "success"
+      
+      // Remove from cart
+      const res = await fetch(
+        `https://shopping-backend-soudip-panjas-projects.vercel.app/cart/${item._id}`,
+        {
+          method: "DELETE",
+        }
       );
+
+      if (res.ok) {
+        // Update local state immediately
+        setCartItems((prev) => prev.filter((cartItem) => cartItem._id !== item._id));
+        setQuantities((prev) => {
+          const updated = { ...prev };
+          delete updated[item._id];
+          return updated;
+        });
+
+        // Refresh context states
+        await refreshCartItems();
+        await refreshWishlistItems();
+
+        showNotification(
+          `${item.productId.name} moved to wishlist successfully!`,
+          "success"
+        );
+      } else {
+        // If cart removal failed, remove from wishlist to maintain consistency
+        await handleWishlistToggle(item.productId._id);
+        showNotification("Failed to move item to wishlist.", "error");
+      }
     } catch (err) {
       console.error("Error moving item to wishlist:", err);
       showNotification("Failed to move item to wishlist.", "error");
+      
+      // Refresh states if there's an error
+      try {
+        const res = await fetch(
+          "https://shopping-backend-soudip-panjas-projects.vercel.app/cart"
+        );
+        const data = await res.json();
+        setCartItems(data);
+        await refreshCartItems();
+        await refreshWishlistItems();
+      } catch (fetchErr) {
+        console.error("Error refreshing data:", fetchErr);
+      }
     }
   };
 
@@ -258,7 +341,7 @@ export default function Cart() {
                         <div className="col-6">
                           <button
                             className="btn btn-outline-danger btn-sm w-100"
-                            onClick={() => handleRemove(item._id)}
+                            onClick={() => handleRemove(item)}
                           >
                             <i className="bi bi-trash"></i>
                           </button>

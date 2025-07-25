@@ -110,15 +110,7 @@ export default function ProductDetails() {
                 <p className="card-text py-3">{product.description}</p>
 
                 <div className="d-flex align-items-center gap-3">
-                  {/* <div className="d-flex align-items-center">
-                    <button className="btn btn-outline-primary rounded-end-0 px-3">
-                      -
-                    </button>
-                    <div className="px-3 border-1">1</div>
-                    <button className="btn btn-outline-primary rounded-start-0 px-3">
-                      +
-                    </button>
-                  </div> */}
+
                   
                   {/* Fixed Add to Cart Button */}
                   <button
